@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Snake Game - Solo & Multiplayer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1400px;
+            height: 100%;
+            justify-content: center;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .game-area {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            height: 75vh;
+        }
+        
+        .left-panel, .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 300px;
+        }
+        
+        .center-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .panel {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            max-height: 100%;
+            overflow-y: auto;
+        }
+        
+        .panel h3 {
+            margin-bottom: 15px;
+            text-align: center;
+            color: #fdbb2d;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 10px;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-board {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #0c1021;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            border: 8px solid #2c3e50;
+        }
+        
+        canvas {
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .arrow-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            width: 200px;
+            height: 200px;
+        }
+        
+        .control-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .control-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        .left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        .right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        .down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            border-radius: 10px;
+        }
+        
+        .game-over h2 {
+            font-size: 3rem;
+            color: #ff4757;
+        }
+        
+        .restart-btn {
+            background-color: #2ed573;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .restart-btn:hover {
+            background-color: #26c463;
+            transform: translateY(-2px);
+        }
+        
+        .instructions {
+            background-color: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1rem;
+            line-height: 1.5;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .mode-controls {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .mode-btn {
+            background-color: #fdbb2d;
+            color: #1a2a6c;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .mode-btn:hover {
+            background-color: #f1a90f;
+            transform: translateY(-2px);
+        }
+        
+        .mode-btn.active {
+            background-color: #2ed573;
+            color: white;
+        }
+        
+        .multiplayer-controls {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .multiplayer-btn {
+            background-color: #3742fa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            font-weight: bold;
+            flex: 1;
+            max-width: 150px;
+        }
+        
+        .multiplayer-btn:hover {
+            background-color: #2f35d1;
+            transform: translateY(-2px);
+        }
+        
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .player-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .player-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .player-info {
+            flex: 1;
+        }
+        
+        .player-name {
+            font-weight: bold;
+        }
+        
+        .player-score {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .player-status {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background-color: #2ed573;
+        }
+        
+        .player-status.dead {
+            background-color: #ff4757;
+        }
+        
+        .achievement-item, .skin-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .achievement-item:hover, .skin-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        .skin-item.active {
+            background-color: rgba(253, 187, 45, 0.3);
+            border: 2px solid #fdbb2d;
+        }
+        
+        .achievement-icon, .skin-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fdbb2d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .achievement-locked, .skin-locked {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        
+        .achievement-locked:hover, .skin-locked:hover {
+            background-color: #555;
+        }
+        
+        .achievement-info, .skin-info {
+            flex: 1;
+        }
+        
+        .achievement-name, .skin-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .achievement-desc, .skin-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+        }
+        
+        .leaderboard-rank {
+            font-weight: bold;
+            width: 25px;
+        }
+        
+        .leaderboard-name {
+            flex: 1;
+        }
+        
+        .leaderboard-score {
+            font-weight: bold;
+            color: #fdbb2d;
+        }
+        
+        .skin-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .skin-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 1.5rem;
+        }
+        
+        .skin-preview:hover {
+            transform: scale(1.05);
+        }
+        
+        .skin-preview.active {
+            border-color: #fdbb2d;
+            box-shadow: 0 0 10px #fdbb2d;
+        }
+        
+        .skin-preview.locked {
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .mobile-controls {
+            display: none;
+        }
+        
+        .achievement-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            transform: translateX(120%);
+            transition: transform 0.5s ease;
+            max-width: 300px;
+        }
+        
+        .achievement-notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #fdbb2d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .player-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .player-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .player-input input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .player-input button {
+            background-color: #2ed573;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .room-code-display {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+        
+        .room-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .room-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .game-area {
+                flex-direction: column;
+                height: auto;
+            }
+            
+            .left-panel, .right-panel {
+                width: 100%;
+            }
+            
+            .game-board {
+                height: 70vw;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .score-container {
+                font-size: 1rem;
+            }
+            
+            .mobile-controls {
+                display: grid;
+            }
+            
+            .desktop-instructions {
+                display: none;
+            }
+            
+            .mode-controls, .multiplayer-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .mode-btn, .multiplayer-btn {
+                max-width: 100%;
+                width: 100%;
+            }
+        }
+        
+        /* Desktop-specific styles */
+        @media (min-width: 769px) {
+            .mobile-controls {
+                display: none;
+            }
+            
+            .desktop-instructions {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>Ultimate Snake Game</h1>
+            <p>Choose your mode and start playing!</p>
+        </div>
+        
+        <div class="score-container">
+            <div class="score">Your Score: <span id="score">0</span></div>
+            <div class="high-score">High Score: <span id="high-score">0</span></div>
+            <div class="players-online">Players: <span id="players-online">1</span></div>
+            <div class="current-skin">Skin: <span id="current-skin">Classic</span></div>
+            <div class="game-mode">Mode: <span id="game-mode">Solo</span></div>
+        </div>
+        
+        <div class="game-area">
+            <div class="left-panel">
+                <div class="panel">
+                    <h3>Game Mode</h3>
+                    <div class="mode-controls">
+                        <button class="mode-btn active" id="solo-btn">Solo Play</button>
+                        <button class="mode-btn" id="multiplayer-btn">Multiplayer</button>
+                    </div>
+                    
+                    <div class="multiplayer-section hidden" id="multiplayer-section">
+                        <div class="room-code-display hidden" id="room-code-display">
+                            Room Code: <span id="room-code"></span>
+                        </div>
+                        <div class="multiplayer-controls">
+                            <button class="multiplayer-btn" id="create-room-btn">Create Room</button>
+                            <button class="multiplayer-btn" id="join-room-btn">Join Room</button>
+                        </div>
+                        <div class="room-input hidden" id="join-room-input">
+                            <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="6">
+                            <button id="confirm-join-btn">Join</button>
+                        </div>
+                    </div>
+                    
+                    <div class="player-input">
+                        <input type="text" id="player-name" placeholder="Enter your name" maxlength="15">
+                        <button id="set-name-btn">Set Name</button>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>Players</h3>
+                    <div class="player-list" id="player-list">
+                        <!-- Player list will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="center-panel">
+                <div class="game-board">
+                    <canvas id="game-canvas"></canvas>
+                    
+                    <div id="game-over" class="game-over hidden">
+                        <h2>Game Over!</h2>
+                        <p>Your score: <span id="final-score">0</span></p>
+                        <button id="restart-btn" class="restart-btn">Play Again</button>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <div class="arrow-controls mobile-controls">
+                        <button class="control-btn up" id="up-btn">↑</button>
+                        <button class="control-btn left" id="left-btn">←</button>
+                        <button class="control-btn right" id="right-btn">→</button>
+                        <button class="control-btn down" id="down-btn">↓</button>
+                    </div>
+                </div>
+                
+                <div class="instructions">
+                    <p class="desktop-instructions">Use arrow keys to control your snake. Collect apples to grow and unlock skins!</p>
+                    <p class="mobile-instructions">Use the buttons to control your snake. Collect apples to grow and unlock skins!</p>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="panel">
+                    <h3>Leaderboard</h3>
+                    <div id="leaderboard-list">
+                        <!-- Leaderboard will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>Character Skins</h3>
+                    <div class="skin-selector" id="skin-selector">
+                        <!-- Skins will be populated by JavaScript -->
+                    </div>
+                    <div id="skins-list">
+                        <!-- Skins list will be populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h3>Achievements</h3>
+                    <div id="achievements-list">
+                        <!-- Achievements will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="achievement-notification" id="achievement-notification">
+            <div class="notification-icon">🏆</div>
+            <div class="notification-info">
+                <div class="notification-title">Achievement Unlocked!</div>
+                <div class="notification-desc" id="notification-desc"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game variables
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('high-score');
+        const playersOnlineElement = document.getElementById('players-online');
+        const currentSkinElement = document.getElementById('current-skin');
+        const gameModeElement = document.getElementById('game-mode');
+        const finalScoreElement = document.getElementById('final-score');
+        const gameOverScreen = document.getElementById('game-over');
+        const restartBtn = document.getElementById('restart-btn');
+        const playerList = document.getElementById('player-list');
+        const playerNameInput = document.getElementById('player-name');
+        const setNameBtn = document.getElementById('set-name-btn');
+        const soloBtn = document.getElementById('solo-btn');
+        const multiplayerBtn = document.getElementById('multiplayer-btn');
+        const createRoomBtn = document.getElementById('create-room-btn');
+        const joinRoomBtn = document.getElementById('join-room-btn');
+        const confirmJoinBtn = document.getElementById('confirm-join-btn');
+        const roomCodeInput = document.getElementById('room-code-input');
+        const roomCodeDisplay = document.getElementById('room-code-display');
+        const roomCodeElement = document.getElementById('room-code');
+        const multiplayerSection = document.getElementById('multiplayer-section');
+        const joinRoomInput = document.getElementById('join-room-input');
+        const achievementsList = document.getElementById('achievements-list');
+        const leaderboardList = document.getElementById('leaderboard-list');
+        const skinsList = document.getElementById('skins-list');
+        const skinSelector = document.getElementById('skin-selector');
+        const achievementNotification = document.getElementById('achievement-notification');
+        const notificationDesc = document.getElementById('notification-desc');
+        
+        // Set canvas size based on container
+        function setCanvasSize() {
+            const gameBoard = document.querySelector('.game-board');
+            const computedStyle = getComputedStyle(gameBoard);
+            const borderWidth = parseInt(computedStyle.borderWidth) * 2;
+            
+            canvas.width = gameBoard.offsetWidth - borderWidth;
+            canvas.height = gameBoard.offsetHeight - borderWidth;
+        }
+        
+        // Initialize canvas size
+        setCanvasSize();
+        
+        // Game constants
+        const gridSize = 20;
+        const gameSpeed = 120; // milliseconds
+        
+        // Game state
+        let snake = [];
+        let food = [];
+        let direction = 'right';
+        let nextDirection = 'right';
+        let score = 0;
+        let highScore = localStorage.getItem('snakeHighScore') || 0;
+        let gameRunning = false;
+        let gameLoop;
+        let playerId = generateId();
+        let playerName = localStorage.getItem('snakePlayerName') || `Player${Math.floor(Math.random() * 1000)}`;
+        let players = {};
+        let currentGameMode = 'solo'; // 'solo' or 'multiplayer'
+        let roomCode = null;
+        let applesEaten = 0;
+        let gamesPlayed = parseInt(localStorage.getItem('snakeGamesPlayed')) || 0;
+        let currentSkin = localStorage.getItem('snakeCurrentSkin') || 'classic';
+        let totalApplesEaten = parseInt(localStorage.getItem('snakeTotalApples')) || 0;
+        let achievementsUnlocked = parseInt(localStorage.getItem('snakeAchievementsUnlocked')) || 0;
+        let skinsUnlocked = parseInt(localStorage.getItem('snakeSkinsUnlocked')) || 1; // Start with 1 for classic skin
+        
+        // Initialize player name
+        playerNameInput.value = playerName;
+        
+        // Character skins
+        const skins = {
+            classic: {
+                name: 'Classic Snake',
+                icon: '🐍',
+                headColor: '#2ed573',
+                bodyColor: '#26c463',
+                foodColor: '#ff4757',
+                unlocked: true
+            },
+            spiderman: {
+                name: 'Spider-Man',
+                icon: '🕷️',
+                headColor: '#e23636',
+                bodyColor: '#2b2b2b',
+                foodColor: '#fdbb2d',
+                unlocked: false,
+                requirement: 'Score 50 points in one game'
+            },
+            superman: {
+                name: 'Superman',
+                icon: '🦸',
+                headColor: '#3a6bdc',
+                bodyColor: '#dc3a3a',
+                foodColor: '#fdbb2d',
+                unlocked: false,
+                requirement: 'Eat 20 apples in one game'
+            },
+            joker: {
+                name: 'Joker',
+                icon: '🃏',
+                headColor: '#9b59b6',
+                bodyColor: '#27ae60',
+                foodColor: '#e74c3c',
+                unlocked: false,
+                requirement: 'Play 10 games'
+            },
+            moneyheist: {
+                name: 'Money Heist',
+                icon: '💰',
+                headColor: '#c0392b',
+                bodyColor: '#2c3e50',
+                foodColor: '#f1c40f',
+                unlocked: false,
+                requirement: 'Reach length of 15'
+            },
+            ironman: {
+                name: 'Iron Man',
+                icon: '🤖',
+                headColor: '#b71c1c',
+                bodyColor: '#f57c00',
+                foodColor: '#ffeb3b',
+                unlocked: false,
+                requirement: 'Achieve 5 achievements'
+            },
+            batman: {
+                name: 'Batman',
+                icon: '🦇',
+                headColor: '#2c3e50',
+                bodyColor: '#f1c40f',
+                foodColor: '#7f8c8d',
+                unlocked: false,
+                requirement: 'Score 100 points'
+            },
+            captainamerica: {
+                name: 'Captain America',
+                icon: '🛡️',
+                headColor: '#1e3a8a',
+                bodyColor: '#b91c1c',
+                foodColor: '#ffffff',
+                unlocked: false,
+                requirement: 'Eat 50 apples total'
+            }
+        };
+        
+        // Achievements system
+        const achievements = [
+            {
+                id: 'first_apple',
+                name: 'First Bite',
+                description: 'Eat your first apple',
+                icon: '🍎',
+                achieved: false,
+                check: () => applesEaten >= 1
+            },
+            {
+                id: 'five_apples',
+                name: 'Hungry Snake',
+                description: 'Eat 5 apples in one game',
+                icon: '🐍',
+                achieved: false,
+                check: () => applesEaten >= 5
+            },
+            {
+                id: 'ten_apples',
+                name: 'Feast',
+                description: 'Eat 10 apples in one game',
+                icon: '🍽️',
+                achieved: false,
+                check: () => applesEaten >= 10
+            },
+            {
+                id: 'score_50',
+                name: 'Half Century',
+                description: 'Score 50 points',
+                icon: '50',
+                achieved: false,
+                check: () => score >= 50
+            },
+            {
+                id: 'score_100',
+                name: 'Century',
+                description: 'Score 100 points',
+                icon: '💯',
+                achieved: false,
+                check: () => score >= 100
+            },
+            {
+                id: 'first_game',
+                name: 'Getting Started',
+                description: 'Play your first game',
+                icon: '🎮',
+                achieved: false,
+                check: () => gamesPlayed >= 1
+            },
+            {
+                id: 'five_games',
+                name: 'Addicted',
+                description: 'Play 5 games',
+                icon: '🔥',
+                achieved: false,
+                check: () => gamesPlayed >= 5
+            },
+            {
+                id: 'length_10',
+                name: 'Long Boi',
+                description: 'Grow to 10 segments',
+                icon: '📏',
+                achieved: false,
+                check: () => snake.length >= 10
+            }
+        ];
+        
+        // Leaderboard system
+        let leaderboard = JSON.parse(localStorage.getItem('snakeLeaderboard')) || [];
+        
+        // Generate unique ID
+        function generateId() {
+            return 'player_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        // Generate room code
+        function generateRoomCode() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+        
+        // Initialize game
+        function initGame() {
+            // Set initial snake position (centered)
+            const startX = Math.floor(canvas.width / gridSize / 2) * gridSize;
+            const startY = Math.floor(canvas.height / gridSize / 2) * gridSize;
+            
+            snake = [
+                { x: startX, y: startY },
+                { x: startX - gridSize, y: startY },
+                { x: startX - gridSize * 2, y: startY }
+            ];
+            
+            // Generate first food
+            generateFood();
+            
+            // Reset game state
+            direction = 'right';
+            nextDirection = 'right';
+            score = 0;
+            applesEaten = 0;
+            scoreElement.textContent = score;
+            highScoreElement.textContent = highScore;
+            currentSkinElement.textContent = skins[currentSkin].name;
+            gameModeElement.textContent = currentGameMode === 'solo' ? 'Solo' : 'Multiplayer';
+            
+            // Initialize players
+            players = {
+                [playerId]: {
+                    id: playerId,
+                    name: playerName,
+                    score: 0,
+                    alive: true,
+                    color: getPlayerColor(playerId),
+                    snake: [...snake],
+                    skin: currentSkin
+                }
+            };
+            
+            // Add AI players for multiplayer mode
+            if (currentGameMode === 'multiplayer') {
+                addAIPlayers();
+            }
+            
+            // Update players online
+            updatePlayersOnline();
+            
+            // Hide game over screen
+            gameOverScreen.classList.add('hidden');
+            
+            // Start game loop
+            gameRunning = true;
+            clearInterval(gameLoop);
+            gameLoop = setInterval(updateGame, gameSpeed);
+            
+            // Update displays
+            updatePlayerList();
+            updateAchievementsDisplay();
+            updateLeaderboardDisplay();
+            updateSkinsDisplay();
+        }
+        
+        // Add AI players for multiplayer
+        function addAIPlayers() {
+            for (let i = 0; i < 3; i++) {
+                const aiId = 'ai_' + i;
+                const startX = Math.floor(Math.random() * (canvas.width / gridSize - 10)) * gridSize + gridSize * 5;
+                const startY = Math.floor(Math.random() * (canvas.height / gridSize - 10)) * gridSize + gridSize * 5;
+                
+                // Random skin for AI
+                const availableSkins = Object.keys(skins).filter(skinId => skins[skinId].unlocked);
+                const randomSkin = availableSkins[Math.floor(Math.random() * availableSkins.length)];
+                
+                players[aiId] = {
+                    id: aiId,
+                    name: `AI Player ${i+1}`,
+                    score: 0,
+                    alive: true,
+                    color: getPlayerColor(aiId),
+                    snake: [
+                        { x: startX, y: startY },
+                        { x: startX - gridSize, y: startY },
+                        { x: startX - gridSize * 2, y: startY }
+                    ],
+                    direction: ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)],
+                    skin: randomSkin
+                };
+            }
+        }
+        
+        // Generate food at random position
+        function generateFood() {
+            const maxX = Math.floor(canvas.width / gridSize) - 1;
+            const maxY = Math.floor(canvas.height / gridSize) - 1;
+            
+            // Generate multiple food items for multiplayer
+            food = [];
+            const foodCount = currentGameMode === 'multiplayer' ? 8 : 5;
+            
+            for (let i = 0; i < foodCount; i++) {
+                let newFood;
+                let onSnake;
+                let onOtherFood;
+                
+                do {
+                    onSnake = false;
+                    onOtherFood = false;
+                    newFood = {
+                        x: Math.floor(Math.random() * maxX) * gridSize,
+                        y: Math.floor(Math.random() * maxY) * gridSize,
+                        id: 'food_' + i
+                    };
+                    
+                    // Check if food is on any snake
+                    for (let playerId in players) {
+                        const playerSnake = players[playerId].snake;
+                        for (let segment of playerSnake) {
+                            if (segment.x === newFood.x && segment.y === newFood.y) {
+                                onSnake = true;
+                                break;
+                            }
+                        }
+                        if (onSnake) break;
+                    }
+                    
+                    // Check if food is on other food
+                    for (let f of food) {
+                        if (f.x === newFood.x && f.y === newFood.y) {
+                            onOtherFood = true;
+                            break;
+                        }
+                    }
+                } while (onSnake || onOtherFood);
+                
+                food.push(newFood);
+            }
+        }
+        
+        // Update game state
+        function updateGame() {
+            // Update direction
+            direction = nextDirection;
+            
+            // Calculate new head position
+            const head = { ...snake[0] };
+            
+            switch (direction) {
+                case 'up':
+                    head.y -= gridSize;
+                    break;
+                case 'down':
+                    head.y += gridSize;
+                    break;
+                case 'left':
+                    head.x -= gridSize;
+                    break;
+                case 'right':
+                    head.x += gridSize;
+                    break;
+            }
+            
+            // Check for collisions with walls - game ends when hitting walls
+            if (
+                head.x < 0 || 
+                head.x >= canvas.width || 
+                head.y < 0 || 
+                head.y >= canvas.height
+            ) {
+                gameOver();
+                return;
+            }
+            
+            // Check for collisions with self
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOver();
+                    return;
+                }
+            }
+            
+            // Check for collisions with other players' snakes (multiplayer only)
+            if (currentGameMode === 'multiplayer') {
+                for (let otherPlayerId in players) {
+                    if (otherPlayerId !== playerId) {
+                        const playerSnake = players[otherPlayerId].snake;
+                        for (let segment of playerSnake) {
+                            if (head.x === segment.x && head.y === segment.y) {
+                                gameOver();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Add new head to snake
+            snake.unshift(head);
+            
+            // Check if food is eaten
+            let foodEaten = false;
+            for (let i = 0; i < food.length; i++) {
+                if (head.x === food[i].x && head.y === food[i].y) {
+                    // Increase score
+                    score += 10;
+                    applesEaten++;
+                    totalApplesEaten++;
+                    players[playerId].score = score;
+                    scoreElement.textContent = score;
+                    
+                    // Remove eaten food
+                    food.splice(i, 1);
+                    
+                    // Generate new food
+                    generateFood();
+                    
+                    // Check for achievements and skin unlocks
+                    checkAchievements();
+                    checkSkinUnlocks();
+                    
+                    foodEaten = true;
+                    break;
+                }
+            }
+            
+            if (!foodEaten) {
+                // Remove tail if no food eaten
+                snake.pop();
+            }
+            
+            // Update player snake
+            players[playerId].snake = [...snake];
+            
+            // Update AI players in multiplayer mode
+            if (currentGameMode === 'multiplayer') {
+                updateAIPlayers();
+            }
+            
+            // Draw game
+            drawGame();
+            
+            // Update player list
+            updatePlayerList();
+        }
+        
+        // Update AI players
+        function updateAIPlayers() {
+            for (let playerId in players) {
+                if (playerId.startsWith('ai_')) {
+                    updateAIPlayer(players[playerId]);
+                }
+            }
+        }
+        
+        // Update individual AI player
+        function updateAIPlayer(aiPlayer) {
+            if (!aiPlayer.alive) return;
+            
+            const head = { ...aiPlayer.snake[0] };
+            let newDirection = aiPlayer.direction;
+            
+            // Simple AI: change direction randomly sometimes
+            if (Math.random() < 0.1) {
+                const directions = ['up', 'down', 'left', 'right'];
+                newDirection = directions[Math.floor(Math.random() * directions.length)];
+                
+                // Don't reverse direction
+                if (
+                    (newDirection === 'up' && aiPlayer.direction !== 'down') ||
+                    (newDirection === 'down' && aiPlayer.direction !== 'up') ||
+                    (newDirection === 'left' && aiPlayer.direction !== 'right') ||
+                    (newDirection === 'right' && aiPlayer.direction !== 'left')
+                ) {
+                    aiPlayer.direction = newDirection;
+                }
+            }
+            
+            // Move in current direction
+            switch (aiPlayer.direction) {
+                case 'up':
+                    head.y -= gridSize;
+                    break;
+                case 'down':
+                    head.y += gridSize;
+                    break;
+                case 'left':
+                    head.x -= gridSize;
+                    break;
+                case 'right':
+                    head.x += gridSize;
+                    break;
+            }
+            
+            // Check for collisions with walls
+            if (
+                head.x < 0 || 
+                head.x >= canvas.width || 
+                head.y < 0 || 
+                head.y >= canvas.height
+            ) {
+                // Change direction if hitting a wall
+                const directions = ['up', 'down', 'left', 'right'];
+                aiPlayer.direction = directions[Math.floor(Math.random() * directions.length)];
+                return;
+            }
+            
+            // Add new head to snake
+            aiPlayer.snake.unshift(head);
+            
+            // Check if food is eaten
+            let foodEaten = false;
+            for (let i = 0; i < food.length; i++) {
+                if (head.x === food[i].x && head.y === food[i].y) {
+                    // Increase score
+                    aiPlayer.score += 10;
+                    
+                    // Remove eaten food
+                    food.splice(i, 1);
+                    
+                    // Generate new food
+                    generateFood();
+                    
+                    foodEaten = true;
+                    break;
+                }
+            }
+            
+            if (!foodEaten) {
+                // Remove tail if no food eaten
+                aiPlayer.snake.pop();
+            }
+        }
+        
+        // Draw game elements
+        function drawGame() {
+            // Clear canvas
+            ctx.fillStyle = '#0c1021';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid (optional)
+            ctx.strokeStyle = '#1a2238';
+            ctx.lineWidth = 0.5;
+            
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Draw all players' snakes
+            for (let playerId in players) {
+                const player = players[playerId];
+                const playerSnake = player.snake;
+                const skin = skins[player.skin] || skins.classic;
+                
+                // Draw snake body
+                for (let i = 1; i < playerSnake.length; i++) {
+                    const segment = playerSnake[i];
+                    
+                    // Body with gradient
+                    const gradient = ctx.createLinearGradient(
+                        segment.x, segment.y, 
+                        segment.x + gridSize, segment.y + gridSize
+                    );
+                    gradient.addColorStop(0, skin.bodyColor);
+                    gradient.addColorStop(1, adjustColor(skin.bodyColor, -20));
+                    ctx.fillStyle = gradient;
+                    
+                    ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+                    
+                    // Add rounded corners
+                    ctx.strokeStyle = '#1a2a6c';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(segment.x, segment.y, gridSize, gridSize);
+                }
+                
+                // Draw snake head with different color and eyes
+                if (playerSnake.length > 0) {
+                    const head = playerSnake[0];
+                    
+                    // Head with bright color
+                    const headGradient = ctx.createLinearGradient(
+                        head.x, head.y, 
+                        head.x + gridSize, head.y + gridSize
+                    );
+                    headGradient.addColorStop(0, skin.headColor);
+                    headGradient.addColorStop(1, adjustColor(skin.headColor, -20));
+                    ctx.fillStyle = headGradient;
+                    
+                    ctx.fillRect(head.x, head.y, gridSize, gridSize);
+                    
+                    // Head border
+                    ctx.strokeStyle = '#1a2a6c';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(head.x, head.y, gridSize, gridSize);
+                    
+                    // Draw eyes
+                    ctx.fillStyle = '#0c1021';
+                    const eyeSize = gridSize / 5;
+                    
+                    // For simplicity, all snakes face right in this simulation
+                    ctx.fillRect(head.x + gridSize - eyeSize*2, head.y + eyeSize, eyeSize, eyeSize);
+                    ctx.fillRect(head.x + gridSize - eyeSize*2, head.y + gridSize - eyeSize*2, eyeSize, eyeSize);
+                }
+            }
+            
+            // Draw food
+            for (let f of food) {
+                ctx.fillStyle = skins[currentSkin].foodColor;
+                ctx.beginPath();
+                ctx.arc(
+                    f.x + gridSize / 2, 
+                    f.y + gridSize / 2, 
+                    gridSize / 2, 
+                    0, 
+                    Math.PI * 2
+                );
+                ctx.fill();
+                
+                // Add shine to food
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(
+                    f.x + gridSize / 3, 
+                    f.y + gridSize / 3, 
+                    gridSize / 6, 
+                    0, 
+                    Math.PI * 2
+                );
+                ctx.fill();
+            }
+            
+            // Display player name and score
+            ctx.fillStyle = 'white';
+            ctx.font = '14px Arial';
+            ctx.fillText(`${playerName}: ${score}`, 10, 20);
+            
+            // Display snake length
+            ctx.fillText(`Length: ${snake.length}`, 10, 40);
+            
+            // Display game mode
+            ctx.fillText(`Mode: ${currentGameMode === 'solo' ? 'Solo' : 'Multiplayer'}`, 10, 60);
+        }
+        
+        // Helper function to adjust color brightness
+        function adjustColor(color, amount) {
+            let usePound = false;
+            
+            if (color[0] === "#") {
+                color = color.slice(1);
+                usePound = true;
+            }
+            
+            const num = parseInt(color, 16);
+            let r = (num >> 16) + amount;
+            let g = ((num >> 8) & 0x00FF) + amount;
+            let b = (num & 0x0000FF) + amount;
+            
+            r = Math.min(Math.max(0, r), 255);
+            g = Math.min(Math.max(0, g), 255);
+            b = Math.min(Math.max(0, b), 255);
+            
+            return (usePound ? "#" : "") + (b | (g << 8) | (r << 16)).toString(16).padStart(6, '0');
+        }
+        
+        // Get a color for a player based on their ID
+        function getPlayerColor(playerId) {
+            const colors = [
+                '#2ed573', '#ff4757', '#3742fa', '#ffa502', '#ff6348',
+                '#5352ed', '#2ed573', '#ff6b81', '#70a1ff', '#7bed9f'
+            ];
+            const index = playerId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length;
+            return colors[index];
+        }
+        
+        // Game over function
+        function gameOver() {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            
+            // Update player status
+            players[playerId].alive = false;
+            
+            // Update games played count
+            gamesPlayed++;
+            localStorage.setItem('snakeGamesPlayed', gamesPlayed);
+            localStorage.setItem('snakeTotalApples', totalApplesEaten);
+            
+            // Update high score
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('snakeHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+            
+            // Add to leaderboard
+            addToLeaderboard(score);
+            
+            // Check for achievements and skin unlocks
+            checkAchievements();
+            checkSkinUnlocks();
+            
+            // Show game over screen
+            finalScoreElement.textContent = score;
+            gameOverScreen.classList.remove('hidden');
+            
+            // Update displays
+            updatePlayerList();
+            updateAchievementsDisplay();
+            updateLeaderboardDisplay();
+            updateSkinsDisplay();
+        }
+        
+        // Update players online count
+        function updatePlayersOnline() {
+            playersOnlineElement.textContent = Object.keys(players).length;
+        }
+        
+        // Update player list display
+        function updatePlayerList() {
+            playerList.innerHTML = '';
+            
+            for (let playerId in players) {
+                const player = players[playerId];
+                const playerElement = document.createElement('div');
+                playerElement.className = 'player-item';
+                
+                playerElement.innerHTML = `
+                    <div class="player-color" style="background-color: ${player.color}"></div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">Score: ${player.score}</div>
+                    </div>
+                    <div class="player-status ${player.alive ? '' : 'dead'}">${player.alive ? 'Alive' : 'Dead'}</div>
+                `;
+                
+                playerList.appendChild(playerElement);
+            }
+        }
+        
+        // Achievements functions
+        function resetAchievements() {
+            // Only reset temporary achievements (not persistent ones)
+            for (let achievement of achievements) {
+                if (achievement.id.includes('apple') || achievement.id.includes('score') || achievement.id.includes('length')) {
+                    achievement.achieved = false;
+                }
+            }
+        }
+        
+        function checkAchievements() {
+            for (let achievement of achievements) {
+                if (!achievement.achieved && achievement.check()) {
+                    achievement.achieved = true;
+                    achievementsUnlocked++;
+                    localStorage.setItem('snakeAchievementsUnlocked', achievementsUnlocked);
+                    showAchievementNotification(achievement);
+                    saveAchievements();
+                }
+            }
+        }
+        
+        function showAchievementNotification(achievement) {
+            notificationDesc.textContent = `${achievement.name}: ${achievement.description}`;
+            achievementNotification.classList.add('show');
+            
+            setTimeout(() => {
+                achievementNotification.classList.remove('show');
+            }, 3000);
+        }
+        
+        function saveAchievements() {
+            const achievedIds = achievements.filter(a => a.achieved).map(a => a.id);
+            localStorage.setItem('snakeAchievements', JSON.stringify(achievedIds));
+        }
+        
+        function loadAchievements() {
+            const achievedIds = JSON.parse(localStorage.getItem('snakeAchievements')) || [];
+            for (let achievement of achievements) {
+                if (achievedIds.includes(achievement.id)) {
+                    achievement.achieved = true;
+                }
+            }
+            
+            // Special case for games played achievement
+            if (gamesPlayed >= 1) {
+                const firstGameAchievement = achievements.find(a => a.id === 'first_game');
+                if (firstGameAchievement) firstGameAchievement.achieved = true;
+            }
+            if (gamesPlayed >= 5) {
+                const fiveGamesAchievement = achievements.find(a => a.id === 'five_games');
+                if (fiveGamesAchievement) fiveGamesAchievement.achieved = true;
+            }
+        }
+        
+        function updateAchievementsDisplay() {
+            achievementsList.innerHTML = '';
+            
+            for (let achievement of achievements) {
+                const achievementElement = document.createElement('div');
+                achievementElement.className = `achievement-item ${achievement.achieved ? '' : 'achievement-locked'}`;
+                
+                achievementElement.innerHTML = `
+                    <div class="achievement-icon ${achievement.achieved ? '' : 'achievement-locked'}">${achievement.icon}</div>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${achievement.name}</div>
+                        <div class="achievement-desc">${achievement.description}</div>
+                    </div>
+                `;
+                
+                achievementsList.appendChild(achievementElement);
+            }
+        }
+        
+        // Skin functions
+        function checkSkinUnlocks() {
+            for (const skinId in skins) {
+                const skin = skins[skinId];
+                if (!skin.unlocked) {
+                    if (
+                        (skinId === 'spiderman' && score >= 50) ||
+                        (skinId === 'superman' && applesEaten >= 20) ||
+                        (skinId === 'joker' && gamesPlayed >= 10) ||
+                        (skinId === 'moneyheist' && snake.length >= 15) ||
+                        (skinId === 'ironman' && achievementsUnlocked >= 5) ||
+                        (skinId === 'batman' && score >= 100) ||
+                        (skinId === 'captainamerica' && totalApplesEaten >= 50)
+                    ) {
+                        skin.unlocked = true;
+                        skinsUnlocked++;
+                        localStorage.setItem('snakeSkinsUnlocked', skinsUnlocked);
+                        saveSkins();
+                        showSkinUnlockNotification(skin);
+                    }
+                }
+            }
+        }
+        
+        function showSkinUnlockNotification(skin) {
+            notificationDesc.textContent = `New Skin Unlocked: ${skin.name}!`;
+            achievementNotification.classList.add('show');
+            
+            setTimeout(() => {
+                achievementNotification.classList.remove('show');
+            }, 3000);
+            
+            // Update skins display
+            updateSkinsDisplay();
+        }
+        
+        function saveSkins() {
+            const unlockedSkins = {};
+            for (const skinId in skins) {
+                unlockedSkins[skinId] = skins[skinId].unlocked;
+            }
+            localStorage.setItem('snakeSkins', JSON.stringify(unlockedSkins));
+        }
+        
+        function loadSkins() {
+            const unlockedSkins = JSON.parse(localStorage.getItem('snakeSkins')) || {};
+            for (const skinId in skins) {
+                if (unlockedSkins[skinId]) {
+                    skins[skinId].unlocked = true;
+                }
+            }
+            // Classic skin is always unlocked
+            skins.classic.unlocked = true;
+        }
+        
+        function updateSkinsDisplay() {
+            skinsList.innerHTML = '';
+            skinSelector.innerHTML = '';
+            
+            for (const skinId in skins) {
+                const skin = skins[skinId];
+                
+                // Add to skins list
+                const skinElement = document.createElement('div');
+                skinElement.className = `skin-item ${skin.unlocked ? '' : 'skin-locked'}`;
+                
+                skinElement.innerHTML = `
+                    <div class="skin-icon ${skin.unlocked ? '' : 'skin-locked'}">${skin.icon}</div>
+                    <div class="skin-info">
+                        <div class="skin-name">${skin.name}</div>
+                        <div class="skin-desc">${skin.unlocked ? 'Unlocked' : skin.requirement}</div>
+                    </div>
+                `;
+                
+                skinsList.appendChild(skinElement);
+                
+                // Add to skin selector
+                const skinPreview = document.createElement('div');
+                skinPreview.className = `skin-preview ${skin.unlocked ? '' : 'locked'} ${currentSkin === skinId ? 'active' : ''}`;
+                skinPreview.style.backgroundColor = skin.headColor;
+                skinPreview.innerHTML = skin.icon;
+                
+                if (skin.unlocked) {
+                    skinPreview.addEventListener('click', () => {
+                        currentSkin = skinId;
+                        localStorage.setItem('snakeCurrentSkin', skinId);
+                        currentSkinElement.textContent = skin.name;
+                        players[playerId].skin = skinId;
+                        
+                        // Update active state
+                        document.querySelectorAll('.skin-preview').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        skinPreview.classList.add('active');
+                        
+                        // Redraw game with new skin
+                        if (gameRunning) drawGame();
+                    });
+                }
+                
+                skinSelector.appendChild(skinPreview);
+            }
+        }
+        
+        // Leaderboard functions
+        function addToLeaderboard(score) {
+            const entry = {
+                score: score,
+                date: new Date().toLocaleDateString(),
+                player: playerName,
+                mode: currentGameMode
+            };
+            
+            leaderboard.push(entry);
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 10); // Keep only top 10
+            
+            localStorage.setItem('snakeLeaderboard', JSON.stringify(leaderboard));
+        }
+        
+        function updateLeaderboardDisplay() {
+            leaderboardList.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<div class="leaderboard-item">No scores yet</div>';
+                return;
+            }
+            
+            for (let i = 0; i < leaderboard.length; i++) {
+                const entry = leaderboard[i];
+                const leaderboardElement = document.createElement('div');
+                leaderboardElement.className = 'leaderboard-item';
+                
+                leaderboardElement.innerHTML = `
+                    <div class="leaderboard-rank">${i + 1}</div>
+                    <div class="leaderboard-name">${entry.player}</div>
+                    <div class="leaderboard-score">${entry.score}</div>
+                `;
+                
+                leaderboardList.appendChild(leaderboardElement);
+            }
+        }
+        
+        // Handle keyboard input (for desktop)
+        function handleKeyDown(e) {
+            if (!gameRunning) return;
+            
+            switch (e.key) {
+                case 'ArrowUp':
+                    if (direction !== 'down') nextDirection = 'up';
+                    break;
+                case 'ArrowDown':
+                    if (direction !== 'up') nextDirection = 'down';
+                    break;
+                case 'ArrowLeft':
+                    if (direction !== 'right') nextDirection = 'left';
+                    break;
+                case 'ArrowRight':
+                    if (direction !== 'left') nextDirection = 'right';
+                    break;
+            }
+        }
+        
+        // Handle button controls (for mobile)
+        document.getElementById('up-btn').addEventListener('click', () => {
+            if (gameRunning && direction !== 'down') nextDirection = 'up';
+        });
+        
+        document.getElementById('down-btn').addEventListener('click', () => {
+            if (gameRunning && direction !== 'up') nextDirection = 'down';
+        });
+        
+        document.getElementById('left-btn').addEventListener('click', () => {
+            if (gameRunning && direction !== 'right') nextDirection = 'left';
+        });
+        
+        document.getElementById('right-btn').addEventListener('click', () => {
+            if (gameRunning && direction !== 'left') nextDirection = 'right';
+        });
+        
+        // Handle set name button
+        setNameBtn.addEventListener('click', () => {
+            const newName = playerNameInput.value.trim();
+            if (newName) {
+                playerName = newName;
+                localStorage.setItem('snakePlayerName', playerName);
+                players[playerId].name = playerName;
+                updatePlayerList();
+            }
+        });
+        
+        // Handle solo mode button
+        soloBtn.addEventListener('click', () => {
+            if (currentGameMode === 'solo') return;
+            
+            currentGameMode = 'solo';
+            soloBtn.classList.add('active');
+            multiplayerBtn.classList.remove('active');
+            multiplayerSection.classList.add('hidden');
+            gameModeElement.textContent = 'Solo';
+            
+            // Restart game with new mode
+            if (gameRunning) {
+                clearInterval(gameLoop);
+                initGame();
+            }
+        });
+        
+        // Handle multiplayer mode button
+        multiplayerBtn.addEventListener('click', () => {
+            if (currentGameMode === 'multiplayer') return;
+            
+            currentGameMode = 'multiplayer';
+            multiplayerBtn.classList.add('active');
+            soloBtn.classList.remove('active');
+            multiplayerSection.classList.remove('hidden');
+            gameModeElement.textContent = 'Multiplayer';
+            
+            // Restart game with new mode
+            if (gameRunning) {
+                clearInterval(gameLoop);
+                initGame();
+            }
+        });
+        
+        // Handle create room button
+        createRoomBtn.addEventListener('click', () => {
+            roomCode = generateRoomCode();
+            roomCodeElement.textContent = roomCode;
+            roomCodeDisplay.classList.remove('hidden');
+            joinRoomInput.classList.add('hidden');
+            
+            // In a real implementation, this would create a room on a server
+            alert(`Room created! Share this code with friends: ${roomCode}`);
+        });
+        
+        // Handle join room button
+        joinRoomBtn.addEventListener('click', () => {
+            joinRoomInput.classList.toggle('hidden');
+        });
+        
+        // Handle confirm join button
+        confirmJoinBtn.addEventListener('click', () => {
+            const code = roomCodeInput.value.trim().toUpperCase();
+            if (code && code.length === 6) {
+                roomCode = code;
+                roomCodeElement.textContent = roomCode;
+                roomCodeDisplay.classList.remove('hidden');
+                
+                // In a real implementation, this would join a room on a server
+                alert(`Joining room: ${code}`);
+            } else {
+                alert('Please enter a valid 6-character room code');
+            }
+        });
+        
+        // Handle restart button
+        restartBtn.addEventListener('click', initGame);
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            setCanvasSize();
+            if (gameRunning) {
+                // Regenerate food to ensure it's within bounds
+                generateFood();
+                drawGame();
+            }
+        });
+        
+        // Start the game
+        loadAchievements();
+        loadSkins();
+        updateAchievementsDisplay();
+        updateLeaderboardDisplay();
+        updateSkinsDisplay();
+        document.addEventListener('keydown', handleKeyDown);
+        initGame();
+    </script>
+</body>
+</html>
